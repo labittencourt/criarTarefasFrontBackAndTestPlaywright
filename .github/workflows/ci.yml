@@ -45,3 +45,37 @@ jobs:
       - name: Encerrar ambiente
         if: always()
         run: docker compose down -v
+
+  publish-report:
+    name: Publicar relatório no GitHub Pages
+    needs: e2e-tests
+    if: always()
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+
+    steps:
+      - name: Baixar relatório HTML
+        uses: actions/download-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report
+
+      - name: Configurar GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Preparar artefato do Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: playwright-report
+
+      - name: Deploy no GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
