@@ -26,6 +26,22 @@ jobs:
       - name: Executar testes Playwright (E2E + API)
         run: docker compose run --rm tests
 
+      - name: Publicar relatório HTML como artefato
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: tests/playwright-report/
+          retention-days: 7
+
+      - name: Publicar relatório JUnit como artefato
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: junit-report
+          path: tests/junit.xml
+          retention-days: 7
+
       - name: Encerrar ambiente
         if: always()
         run: docker compose down -v
