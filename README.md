@@ -12,6 +12,7 @@ Projeto completo de demonstração de QA com frontend, backend, banco de dados e
 | Backend    | Node.js + Express       |
 | Banco      | SQLite                  |
 | Testes     | Playwright              |
+| CI/CD      | GitHub Actions          |
 | Infra      | Docker + Docker Compose |
 
 ---
@@ -81,6 +82,9 @@ Ou abra diretamente o arquivo `tests/playwright-report/index.html` no navegador.
 
 ```
 criarTarefasFrontBackAndTestPlaywright/
+├── .github/
+│   └── workflows/
+│       └── ci.yml         # Pipeline CI/CD (GitHub Actions)
 ├── frontend/
 │   ├── index.html        # Interface da aplicação
 │   ├── style.css         # Estilos
@@ -164,3 +168,50 @@ cd tests
 npx playwright test --project=e2e   # apenas testes de UI
 npx playwright test --project=api   # apenas testes de API
 ```
+
+---
+
+## CI/CD (GitHub Actions)
+
+A pipeline está definida em [`.github/workflows/ci.yml`](.github/workflows/ci.yml) e é composta por dois jobs.
+
+### Gatilhos (`on`)
+
+| Gatilho   | Configuração                  | Quando dispara                            |
+|-----------|--------------------------------|--------------------------------------------|
+| Push      | `push: branches: [main]`       | A cada push na branch `main`                |
+| Manual    | `workflow_dispatch`             | Sob demanda, pela aba **Actions** do GitHub |
+| Agendado  | `schedule: cron: "0 6 * * *"`  | Diariamente às 06:00 UTC                    |
+
+### Job 1 — `e2e-tests`
+
+Reaproveita o mesmo `docker-compose.yml` usado localmente:
+
+1. `docker compose build` — constrói as imagens de backend e frontend
+2. `docker compose up -d backend frontend` — sobe o ambiente (aguarda o backend ficar `healthy` via healthcheck)
+3. `docker compose run --rm tests` — executa a suíte Playwright (projetos `e2e` e `api`), gerando `tests/playwright-report/` e `tests/junit.xml` no runner via bind mount
+4. Upload dos relatórios como **artefatos** (`actions/upload-artifact`), com `if: always()` para preservá-los mesmo se os testes falharem
+5. `docker compose down -v` — encerra e limpa containers e volumes
+
+### Job 2 — `publish-report`
+
+Depende do job anterior (`needs: e2e-tests`) e roda mesmo se ele falhar (`if: always()`), garantindo que o relatório de uma execução com falhas também fique disponível:
+
+1. Baixa o artefato `playwright-report`
+2. `actions/configure-pages` + `actions/upload-pages-artifact` + `actions/deploy-pages` publicam o conteúdo no **GitHub Pages**
+
+> ⚠️ Para o deploy funcionar é necessário habilitar o GitHub Pages no repositório (Settings → Pages → Source: **GitHub Actions**) — configuração feita uma única vez, manualmente.
+
+### Conceitos utilizados
+
+- **Triggers (`on`)**: `push`, `workflow_dispatch` (execução manual) e `schedule` (cron) combinados no mesmo workflow
+- **Jobs e `needs`**: o job de publicação depende do job de testes, formando uma pipeline sequencial
+- **`if: always()`**: garante que artefatos e publicação aconteçam mesmo com testes falhando — essencial para depurar falhas
+- **Artefatos** (`actions/upload-artifact` / `download-artifact`): armazenam o relatório HTML e o JUnit para download manual, com retenção de 7 dias
+- **GitHub Pages via Actions**: `permissions: pages/id-token`, `environment: github-pages` e as actions oficiais (`configure-pages`, `upload-pages-artifact`, `deploy-pages`) publicam o relatório como site estático
+- **`concurrency`**: evita deploys simultâneos no Pages
+
+### Onde ver os resultados
+
+- **Aba "Actions"** do repositório → logs de cada execução e link para download dos artefatos
+- **GitHub Pages** (URL disponível em Settings → Pages após o primeiro deploy) → relatório HTML navegável da última execução
