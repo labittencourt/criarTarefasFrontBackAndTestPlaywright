@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QA Portfolio — Todo List</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <h1>📝 Minhas Tarefas</h1>
+      <p class="subtitle">QA Portfolio Project</p>
+    </header>
+
+    <!-- Formulário de criação -->
+    <div class="form-card">
+      <input
+        type="text"
+        id="todo-input"
+        placeholder="Digite uma nova tarefa..."
+        maxlength="100"
+        data-testid="todo-input"
+      />
+      <button id="add-btn" data-testid="add-btn">Adicionar</button>
+    </div>
+
+    <!-- Mensagem de erro -->
+    <p id="error-msg" class="error-msg" data-testid="error-msg"></p>
+
+    <!-- Filtros -->
+    <div class="filters">
+      <button class="filter-btn active" data-filter="all" data-testid="filter-all">Todas</button>
+      <button class="filter-btn" data-filter="active" data-testid="filter-active">Pendentes</button>
+      <button class="filter-btn" data-filter="completed" data-testid="filter-completed">Concluídas</button>
+    </div>
+
+    <!-- Contador -->
+    <p id="counter" class="counter" data-testid="counter"></p>
+
+    <!-- Lista de tarefas -->
+    <ul id="todo-list" data-testid="todo-list"></ul>
+
+    <!-- Modal de edição -->
+    <div id="edit-modal" class="modal hidden" data-testid="edit-modal">
+      <div class="modal-content">
+        <h2>Editar Tarefa</h2>
+        <input type="text" id="edit-input" data-testid="edit-input" maxlength="100" />
+        <div class="modal-actions">
+          <button id="save-edit-btn" data-testid="save-edit-btn">Salvar</button>
+          <button id="cancel-edit-btn" data-testid="cancel-edit-btn" class="secondary">Cancelar</button>
+        </div>
+      </div>
+    </div>
+    <div id="modal-overlay" class="modal-overlay hidden"></div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+{
+  "name": "qa-portfolio-tests",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "playwright test",
+    "test:e2e": "playwright test --project=e2e",
+    "test:api": "playwright test --project=api",
+    "test:report": "playwright test --reporter=html"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.44.0"
+  }
+}

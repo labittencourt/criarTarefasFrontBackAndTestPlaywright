@@ -1,0 +1,15 @@
+# Dependências
+node_modules/
+
+# Banco de dados SQLite (gerado em runtime)
+backend/data/
+*.db
+
+# Variáveis de ambiente
+.env
+.env.*
+
+# Artefatos de testes E2E
+tests/test-results/
+tests/playwright-report/
+tests/junit.xml
